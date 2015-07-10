@@ -7,9 +7,9 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var User = require('./models/User.js');
 var jwt = require('./services/jwt.js');
-var cors = require('cors')
 
-var port = process.env.port || 3000;
+
+var port = process.env.PORT || 7203;
 
 var app = express();
 
@@ -28,7 +28,7 @@ var allowCrossDomain = function(req, res, next) {
 };
 app.use(allowCrossDomain)
 app.use(bodyParser.json());
-app.use(cors());
+
 
 app.post('/register',function(req,res){
     var user = req.body;
