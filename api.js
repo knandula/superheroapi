@@ -9,6 +9,8 @@ var User = require('./models/User.js');
 var jwt = require('./services/jwt.js');
 var cors = require('cors')
 
+var port = process.env.port || 3000;
+
 var app = express();
 
 app.use(bodyParser.json());
@@ -63,6 +65,6 @@ function createSendToken(user,res){
 
 mongoose.connect('mongodb://superhero:superhero@ds033429.mongolab.com:33429/startupone');
 
-var server = app.listen(3000,function(){
+var server = app.listen(port,function(){
     console.log('api listening on',server.address().port);
 })
