@@ -1,13 +1,12 @@
-/**
- * Created by knandula on 7/10/2015.
- */
-
 var mongoose = require('mongoose');
 var bcrypt = require('bcrypt-nodejs');
 
 var UserSchema = new mongoose.Schema({
     email:String,
-    password:String
+    password:String,
+    googleId: String,
+    facebookId: String,
+    displayName: String
 })
 
 
