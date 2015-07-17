@@ -9,7 +9,6 @@ var User = require('./models/User.js');
 var facebookAuth = require('./services/facebookAuth.js');
 var request = require('request');
 var moment = require('moment');
-var jwt = require('./services/jwt.js');
 
 
 
@@ -20,7 +19,7 @@ var app = express();
 app.all('*', function(req, res, next){
     if (!req.get('Origin')) return next();
     // use "*" here to accept any origin
-    res.set('Access-Control-Allow-Origin', 'http://localhost:9000');
+    res.set('Access-Control-Allow-Origin', 'http://fictiontreeapi.herokuapp.com/');
     res.set('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
     res.set('Access-Control-Allow-Credentials', 'true');
     res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
