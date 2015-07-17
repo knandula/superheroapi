@@ -68,7 +68,7 @@ app.post('/auth/google',function(req,res){
         redirect_uri: req.body.redirectUri,
         code:req.body.code,
         grant_type: 'authorization_code',
-        client_secret: 'pF7PBzhibUw3ZPU8dLR8jMQK'
+        client_secret: 'f2W4QSvL4CdiJrm4VXRiSl4p'
     }
     console.log(params);
     request.post(url,{
