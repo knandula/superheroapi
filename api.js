@@ -7,6 +7,7 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var User = require('./models/User.js');
 var facebookAuth = require('./services/facebookAuth.js');
+var jwt = require('./services/jwt.js');
 var request = require('request');
 var moment = require('moment');
 
