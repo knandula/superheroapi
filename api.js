@@ -4,23 +4,24 @@
 
 var express = require('express');
 var bodyParser = require('body-parser');
+var busboy = require('connect-busboy')
 var mongoose = require('mongoose');
 var User = require('./models/User.js');
 var facebookAuth = require('./services/facebookAuth.js');
 var jwt = require('./services/jwt.js');
 var request = require('request');
 var moment = require('moment');
+var Grid = require('gridfs-stream');
 
-
-
-var port = process.env.PORT || 7203;
+var port = process.env.PORT || 7200;
 
 var app = express();
 
 app.all('*', function(req, res, next){
     if (!req.get('Origin')) return next();
     // use "*" here to accept any origin
-    res.set('Access-Control-Allow-Origin', 'https://fictiontree.herokuapp.com');
+    //res.set('Access-Control-Allow-Origin', 'https://fictiontree.herokuapp.com');
+    res.set('Access-Control-Allow-Origin', 'https://streatbeat.herokuapp.com');  // localhost
     res.set('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
     res.set('Access-Control-Allow-Credentials', 'true');
     res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
@@ -29,8 +30,45 @@ app.all('*', function(req, res, next){
     next();
 });
 
-app.use(bodyParser.json());
+//app.use(busboyBodyParser());
+//app.use(busboy());
 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded());
+
+//app.use(function parseUploadMW(req,res,next){
+//    req.busboy.on('file', function onFile(fieldname, file, filename, encoding, mimetype) {
+//        file.fileRead = [];
+//        file.on('data', function onData(chunk) {
+//            this.fileRead.push(chunk);
+//        });
+//        file.on('error', function onError(err) {
+//            console.log('Error while buffering the stream: ', err);
+//            //handle error
+//        });
+//        file.on('end', function onEnd() {
+//            var finalBuffer = Buffer.concat(this.fileRead);
+//            req.files = req.files||{}
+//            req.files[fieldname] = {
+//                buffer: finalBuffer,
+//                size: finalBuffer.length,
+//                filename: filename,
+//                mimetype: mimetype.toLowerCase()
+//            };
+//        });
+//    });
+//    req.busboy.on('finish', function onFinish() {
+//        next()
+//    });
+//    req.pipe(req.busboy);
+//})
+
+
+
+
+app.post('/location',function(req,res){
+    console.log(req.body);
+})
 
 app.post('/register',function(req,res){
     var user = req.body;
@@ -46,6 +84,7 @@ app.post('/register',function(req,res){
 
 app.post('/login',function(req,res){
     req.user = req.body;
+    console.log(req.user);
     var searchUser = {email: req.user.email};
     User.findOne(searchUser,function(err,user){
         if(err) throw err;
@@ -57,6 +96,7 @@ app.post('/login',function(req,res){
         });
     })
 })
+
 
 
 app.post('/auth/facebook',facebookAuth);
@@ -113,7 +153,24 @@ function createSendToken(user,res){
         token: token
     });
 }
+
 mongoose.connect('mongodb://superhero:superhero@ds033429.mongolab.com:33429/startupone');
+
+//var conn = mongoose.connection;
+//Grid.mongo = mongoose.mongo;
+//
+//app.post('/uploadimage',function(req,res){
+//    console.log(req.body);
+//
+//
+//       var gfs = Grid(conn.db);
+//       var ws = gfs.createWriteStream(req.body);
+//
+//       ws.on('close',function(file){
+//           console.log(file.filename + "written to DB");
+//       })
+//
+//})
 
 var server = app.listen(port,function(){
     console.log('api listening on',port);

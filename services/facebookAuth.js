@@ -4,7 +4,8 @@
 
 var request = require('request');
 var qs = require('querystring');
-var createSendToken = require('./common.js');
+var jwt = require('./jwt.js');
+var moment = require('moment');
 var config= require('./config.js');
 var User =require('.././models/User.js');
 
@@ -23,18 +24,32 @@ module.exports = function(req,res){
         accessToken = qs.parse(accessToken);
 
         request.get({url:graphApiUrl,qs:accessToken,json:true},function(err,response,profile){
-                console.log(accessToken);
-                console.log(profile);
                 User.findOne({facebookId:profile.id},function(err,existingUser){
                     if(existingUser)
                         createSendToken(existingUser,res);
-                    var newUser = new User();
-                    newUser.facebookId = profile.id;
-                    newUser.displayName = profile.name;
-                    newUser.save(function(err){
-                        createSendToken(newUser,res);
-                    })
+                    else {
+                        var newUser = new User();
+                        newUser.facebookId = profile.id;
+                        newUser.displayName = profile.name;
+                        newUser.save(function (err) {
+                            createSendToken(newUser, res);
+                        })
+                    }
                 });
         })
     });
+
+
+    function createSendToken(user,res){
+        var payload = {
+            sub:user._id,
+            exp: moment().add(10,'days').unix()
+        }
+        var token  = jwt.encode(payload,'shhh...');
+
+        res.status(200).send({
+            user:user.toJSON(),
+            token: token
+        });
+    }
 };

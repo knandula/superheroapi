@@ -11,9 +11,12 @@
   "dependencies": {
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.13.2",
+    "busboy-body-parser": "0.0.9",
+    "connect-busboy": "0.0.2",
     "cors": "^2.7.1",
     "crypto": "0.0.3",
     "express": "^4.13.1",
+    "gridfs-stream": "^1.1.1",
     "moment": "^2.10.3",
     "mongoose": "^4.0.6",
     "querystring": "^0.2.0",
