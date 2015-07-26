@@ -4,16 +4,22 @@
 
 var express = require('express');
 var bodyParser = require('body-parser');
-var busboy = require('connect-busboy')
 var mongoose = require('mongoose');
 var User = require('./models/User.js');
 var facebookAuth = require('./services/facebookAuth.js');
 var jwt = require('./services/jwt.js');
 var request = require('request');
 var moment = require('moment');
+var fs = require('fs');
+var multer = require('multer');
+var util = require("util");
+var upload = multer({ dest: 'uploads/' });
+var Schema = mongoose.Schema;
+var conn = mongoose.connection;
 var Grid = require('gridfs-stream');
+Grid.mongo = mongoose.mongo;
 
-var port = process.env.PORT || 7200;
+var port = process.env.PORT || 7203;
 
 var app = express();
 
@@ -21,7 +27,7 @@ app.all('*', function(req, res, next){
     if (!req.get('Origin')) return next();
     // use "*" here to accept any origin
     //res.set('Access-Control-Allow-Origin', 'https://fictiontree.herokuapp.com');
-    res.set('Access-Control-Allow-Origin', 'https://streatbeat.herokuapp.com');  // localhost
+    res.set('Access-Control-Allow-Origin', 'http://localhost:9000');
     res.set('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
     res.set('Access-Control-Allow-Credentials', 'true');
     res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
@@ -30,45 +36,30 @@ app.all('*', function(req, res, next){
     next();
 });
 
-//app.use(busboyBodyParser());
-//app.use(busboy());
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded());
-
-//app.use(function parseUploadMW(req,res,next){
-//    req.busboy.on('file', function onFile(fieldname, file, filename, encoding, mimetype) {
-//        file.fileRead = [];
-//        file.on('data', function onData(chunk) {
-//            this.fileRead.push(chunk);
-//        });
-//        file.on('error', function onError(err) {
-//            console.log('Error while buffering the stream: ', err);
-//            //handle error
-//        });
-//        file.on('end', function onEnd() {
-//            var finalBuffer = Buffer.concat(this.fileRead);
-//            req.files = req.files||{}
-//            req.files[fieldname] = {
-//                buffer: finalBuffer,
-//                size: finalBuffer.length,
-//                filename: filename,
-//                mimetype: mimetype.toLowerCase()
-//            };
-//        });
-//    });
-//    req.busboy.on('finish', function onFinish() {
-//        next()
-//    });
-//    req.pipe(req.busboy);
-//})
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
 
+app.post('/uploadimage', multer({dest:'./uploads/'}).single('input-file-preview'), function(req, res) {
+    var file = req.file;
+    var gfs = Grid(conn.db);
+    var options = {filename : file.originalname};
+    gfs.exist(options, function (err, found) {
+        if (err) return handleError(err);
+        found ? console.log('File exists') : console.log('File does not exist');
+    });
+    var ws = gfs.createWriteStream({
+        filename:file.originalname
+    });
 
+    fs.createReadStream(file.path).pipe(ws);
 
-app.post('/location',function(req,res){
-    console.log(req.body);
-})
+    ws.on('close', function (file) {
+        // do something with `file`
+        console.log(file.filename + 'Written To DB');
+    });
+});
 
 app.post('/register',function(req,res){
     var user = req.body;
@@ -81,7 +72,6 @@ app.post('/register',function(req,res){
         createSendToken(newUser,res);
     })
 })
-
 app.post('/login',function(req,res){
     req.user = req.body;
     console.log(req.user);
@@ -96,11 +86,7 @@ app.post('/login',function(req,res){
         });
     })
 })
-
-
-
 app.post('/auth/facebook',facebookAuth);
-
 app.post('/auth/google',function(req,res){
     var url =  'https://accounts.google.com/o/oauth2/token';
     var apiUrl = 'https://www.googleapis.com/plus/v1/people/me/openIdConnect';
@@ -156,21 +142,6 @@ function createSendToken(user,res){
 
 mongoose.connect('mongodb://superhero:superhero@ds033429.mongolab.com:33429/startupone');
 
-//var conn = mongoose.connection;
-//Grid.mongo = mongoose.mongo;
-//
-//app.post('/uploadimage',function(req,res){
-//    console.log(req.body);
-//
-//
-//       var gfs = Grid(conn.db);
-//       var ws = gfs.createWriteStream(req.body);
-//
-//       ws.on('close',function(file){
-//           console.log(file.filename + "written to DB");
-//       })
-//
-//})
 
 var server = app.listen(port,function(){
     console.log('api listening on',port);
