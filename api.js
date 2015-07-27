@@ -6,6 +6,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var User = require('./models/User.js');
+var Profile = require('./models/Profile.js');
 var facebookAuth = require('./services/facebookAuth.js');
 var jwt = require('./services/jwt.js');
 var request = require('request');
@@ -17,6 +18,12 @@ var upload = multer({ dest: 'uploads/' });
 var Schema = mongoose.Schema;
 var conn = mongoose.connection;
 var Grid = require('gridfs-stream');
+var multiparty = require('connect-multiparty');
+var buffer = "";
+
+var multipartyMiddleware = multiparty();
+
+
 Grid.mongo = mongoose.mongo;
 
 var port = process.env.PORT || 7203;
@@ -41,24 +48,85 @@ app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
 
-app.post('/uploadimage', multer({dest:'./uploads/'}).single('input-file-preview'), function(req, res) {
-    var file = req.file;
+app.post('/getprofiledata',function(req,res) {
+    var user = req.body;
+    var bufs = [];
     var gfs = Grid(conn.db);
-    var options = {filename : file.originalname};
-    gfs.exist(options, function (err, found) {
-        if (err) return handleError(err);
-        found ? console.log('File exists') : console.log('File does not exist');
-    });
+
+    Profile.findOne({userId: user._id},function(err, foundProfile){
+        console.log(foundProfile);
+        if(foundProfile){
+            var readStream = gfs.createReadStream({ _id: foundProfile.coverpicid });
+
+            readStream.on("data", function (chunk) {
+                bufs.push(chunk);
+            });
+
+            readStream.on("end", function () {
+                var fbuf = Buffer.concat(bufs);
+                var base64 = (fbuf.toString('base64'));
+                res.send('data:' + foundProfile.coverpictype + ';base64,' + base64);
+            });
+        }
+    })
+
+})
+
+app.post('/uploadimage',multipartyMiddleware,function(req,res){
+    var user = JSON.parse(req.body.data);
+    var bufs = [];
+    var rfile = req.files.file;
+    var gfs = Grid(conn.db);
+    //var options = {filename : rfile.originalname};
+    //gfs.exist(options, function (err, found) {
+    //    if (err) return handleError(err);
+    //    found ? console.log('File exists') : console.log('File does not exist');
+    //});
     var ws = gfs.createWriteStream({
-        filename:file.originalname
+        filename:rfile.originalname
     });
-
-    fs.createReadStream(file.path).pipe(ws);
-
+    fs.createReadStream(rfile.path).pipe(ws);
     ws.on('close', function (file) {
-        // do something with `file`
-        console.log(file.filename + 'Written To DB');
+        var readStream = gfs.createReadStream({ _id: file._id });
+        readStream.on("data", function (chunk) {
+            bufs.push(chunk);
+        });
+        readStream.on("end", function () {
+            var fbuf = Buffer.concat(bufs);
+            var base64 = (fbuf.toString('base64'));
+
+
+            console.log(user.userdata._id);
+
+            Profile.findOne({userId: user.userdata._id},function(err, foundProfile){
+                console.log(foundProfile);
+                if(foundProfile){
+                    foundProfile.coverpicid = file._id;
+                    foundProfile.coverpictype = rfile.type;
+                    foundProfile.save();
+                    res.send('data:'+rfile.type+';base64,' + base64 );
+
+                }else {
+                    var prof = new Profile();
+                    prof.userId = user.userdata._id;
+                    prof.coverpicid =  file._id;
+                    prof.coverpictype = rfile.type;
+                    prof.save(function (err) {
+                        if (err) throw err;
+                        res.send('data:'+rfile.type+';base64,' + base64 );
+                    })
+                }
+
+            })
+        });
     });
+})
+
+app.get('/data/:image', function(req, res) {
+    fileRepository.getFile( function(error,data) {
+        res.writeHead('200', {'Content-Type': 'image/png'});
+        res.end(data,'binary');
+    }, req.params.imgtag );
 });
 
 app.post('/register',function(req,res){

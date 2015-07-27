@@ -29,6 +29,7 @@ module.exports = function(req,res){
                         createSendToken(existingUser,res);
                     else {
                         var newUser = new User();
+                        console.log(profile);
                         newUser.facebookId = profile.id;
                         newUser.displayName = profile.name;
                         newUser.save(function (err) {
