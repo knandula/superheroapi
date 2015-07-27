@@ -48,14 +48,47 @@ app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
 
-app.post('/getprofiledata',function(req,res) {
+app.post('/getprofilepicdata',function(req,res) {
     var user = req.body;
+    var cover= "";
+    var prof=";"
     var bufs = [];
+    var bufProfs = [];
+    var data = [];
     var gfs = Grid(conn.db);
 
     Profile.findOne({userId: user._id},function(err, foundProfile){
-        console.log(foundProfile);
         if(foundProfile){
+
+            var readStreamProf = gfs.createReadStream({ _id: foundProfile.profilepicid });
+
+            readStreamProf.on("data", function (chunk) {
+                bufProfs.push(chunk);
+            });
+
+            readStreamProf.on("end", function () {
+                var fpbuf = Buffer.concat(bufProfs);
+                var base64 = (fpbuf.toString('base64'));
+                prof = ('data:' + foundProfile.profilepictype + ';base64,' + base64);
+                res.send(prof);
+            });
+        }
+    })
+})
+
+
+app.post('/getcoverpicdata',function(req,res) {
+    var user = req.body;
+    var cover= "";
+    var prof=";"
+    var bufs = [];
+    var bufProfs = [];
+    var data = [];
+    var gfs = Grid(conn.db);
+
+    Profile.findOne({userId: user._id},function(err, foundProfile){
+        if(foundProfile){
+
             var readStream = gfs.createReadStream({ _id: foundProfile.coverpicid });
 
             readStream.on("data", function (chunk) {
@@ -65,7 +98,9 @@ app.post('/getprofiledata',function(req,res) {
             readStream.on("end", function () {
                 var fbuf = Buffer.concat(bufs);
                 var base64 = (fbuf.toString('base64'));
-                res.send('data:' + foundProfile.coverpictype + ';base64,' + base64);
+                cover = ('data:' + foundProfile.coverpictype + ';base64,' + base64);
+                res.send(cover);
+
             });
         }
     })
@@ -74,6 +109,7 @@ app.post('/getprofiledata',function(req,res) {
 
 app.post('/uploadimage',multipartyMiddleware,function(req,res){
     var user = JSON.parse(req.body.data);
+    var imgtype = user.imgtype;
     var bufs = [];
     var rfile = req.files.file;
     var gfs = Grid(conn.db);
@@ -96,21 +132,31 @@ app.post('/uploadimage',multipartyMiddleware,function(req,res){
             var base64 = (fbuf.toString('base64'));
 
 
-            console.log(user.userdata._id);
+
 
             Profile.findOne({userId: user.userdata._id},function(err, foundProfile){
-                console.log(foundProfile);
                 if(foundProfile){
-                    foundProfile.coverpicid = file._id;
-                    foundProfile.coverpictype = rfile.type;
+                    if(imgtype == 'cover') {
+                        foundProfile.coverpicid = file._id;
+                        foundProfile.coverpictype = rfile.type;
+                    }else if(imgtype == 'profile')
+                    {
+                        foundProfile.profilepicid = file._id;
+                        foundProfile.profilepictype = rfile.type;
+                    }
                     foundProfile.save();
                     res.send('data:'+rfile.type+';base64,' + base64 );
 
                 }else {
                     var prof = new Profile();
                     prof.userId = user.userdata._id;
-                    prof.coverpicid =  file._id;
-                    prof.coverpictype = rfile.type;
+                    if(imgtype == 'cover') {
+                        prof.coverpicid = file._id;
+                        prof.coverpictype = rfile.type;
+                    }else if(imgtype == 'profile'){
+                        foundProfile.profilepicid = file._id;
+                        foundProfile.profilepictype = rfile.type;
+                    }
                     prof.save(function (err) {
                         if (err) throw err;
                         res.send('data:'+rfile.type+';base64,' + base64 );

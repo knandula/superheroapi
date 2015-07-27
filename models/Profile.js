@@ -7,7 +7,8 @@ var ProfileSchema = new mongoose.Schema({
     userId:String,
     coverpicid: String,
     coverpictype: String,
-    profilepicid: String
+    profilepicid: String,
+    profilepictype: String
 })
 
 module.exports = mongoose.model('Profile',ProfileSchema)
