@@ -8,7 +8,9 @@ var ProfileSchema = new mongoose.Schema({
     coverpicid: String,
     coverpictype: String,
     profilepicid: String,
-    profilepictype: String
+    profilepictype: String,
+    coverpath: String,
+    profilepath: String
 })
 
 module.exports = mongoose.model('Profile',ProfileSchema)

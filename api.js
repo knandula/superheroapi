@@ -18,10 +18,12 @@ var upload = multer({ dest: 'uploads/' });
 var Schema = mongoose.Schema;
 var conn = mongoose.connection;
 var Grid = require('gridfs-stream');
+var path = require('path');
 var multiparty = require('connect-multiparty');
+var formidable = require('formidable');
 var buffer = "";
 
-var multipartyMiddleware = multiparty();
+var multipartyMiddleware = multiparty({ uploadDir: './public/img' });
 
 
 Grid.mongo = mongoose.mongo;
@@ -29,7 +31,7 @@ Grid.mongo = mongoose.mongo;
 var port = process.env.PORT || 7203;
 
 var app = express();
-
+app.use(express.static(path.join(__dirname,'./public')));
 app.all('*', function(req, res, next){
     if (!req.get('Origin')) return next();
     // use "*" here to accept any origin
@@ -43,35 +45,16 @@ app.all('*', function(req, res, next){
     next();
 });
 
-
+app.use(bodyParser({defer: true}));
 app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
 
 app.post('/getprofilepicdata',function(req,res) {
     var user = req.body;
-    var cover= "";
-    var prof=";"
-    var bufs = [];
-    var bufProfs = [];
-    var data = [];
-    var gfs = Grid(conn.db);
-
     Profile.findOne({userId: user._id},function(err, foundProfile){
         if(foundProfile){
-
-            var readStreamProf = gfs.createReadStream({ _id: foundProfile.profilepicid });
-
-            readStreamProf.on("data", function (chunk) {
-                bufProfs.push(chunk);
-            });
-
-            readStreamProf.on("end", function () {
-                var fpbuf = Buffer.concat(bufProfs);
-                var base64 = (fpbuf.toString('base64'));
-                prof = ('data:' + foundProfile.profilepictype + ';base64,' + base64);
-                res.send(prof);
-            });
+            res.send(foundProfile.profilepath);
         }
     })
 })
@@ -79,93 +62,46 @@ app.post('/getprofilepicdata',function(req,res) {
 
 app.post('/getcoverpicdata',function(req,res) {
     var user = req.body;
-    var cover= "";
-    var prof=";"
-    var bufs = [];
-    var bufProfs = [];
-    var data = [];
-    var gfs = Grid(conn.db);
-
     Profile.findOne({userId: user._id},function(err, foundProfile){
         if(foundProfile){
-
-            var readStream = gfs.createReadStream({ _id: foundProfile.coverpicid });
-
-            readStream.on("data", function (chunk) {
-                bufs.push(chunk);
-            });
-
-            readStream.on("end", function () {
-                var fbuf = Buffer.concat(bufs);
-                var base64 = (fbuf.toString('base64'));
-                cover = ('data:' + foundProfile.coverpictype + ';base64,' + base64);
-                res.send(cover);
-
-            });
+            res.send(foundProfile.coverpath);
         }
     })
-
 })
 
 app.post('/uploadimage',multipartyMiddleware,function(req,res){
     var user = JSON.parse(req.body.data);
     var imgtype = user.imgtype;
-    var bufs = [];
     var rfile = req.files.file;
-    var gfs = Grid(conn.db);
-    //var options = {filename : rfile.originalname};
-    //gfs.exist(options, function (err, found) {
-    //    if (err) return handleError(err);
-    //    found ? console.log('File exists') : console.log('File does not exist');
-    //});
-    var ws = gfs.createWriteStream({
-        filename:rfile.originalname
-    });
-    fs.createReadStream(rfile.path).pipe(ws);
-    ws.on('close', function (file) {
-        var readStream = gfs.createReadStream({ _id: file._id });
-        readStream.on("data", function (chunk) {
-            bufs.push(chunk);
-        });
-        readStream.on("end", function () {
-            var fbuf = Buffer.concat(bufs);
-            var base64 = (fbuf.toString('base64'));
 
-
-
-
-            Profile.findOne({userId: user.userdata._id},function(err, foundProfile){
-                if(foundProfile){
-                    if(imgtype == 'cover') {
-                        foundProfile.coverpicid = file._id;
-                        foundProfile.coverpictype = rfile.type;
-                    }else if(imgtype == 'profile')
-                    {
-                        foundProfile.profilepicid = file._id;
-                        foundProfile.profilepictype = rfile.type;
-                    }
-                    foundProfile.save();
-                    res.send('data:'+rfile.type+';base64,' + base64 );
-
-                }else {
-                    var prof = new Profile();
-                    prof.userId = user.userdata._id;
-                    if(imgtype == 'cover') {
-                        prof.coverpicid = file._id;
-                        prof.coverpictype = rfile.type;
-                    }else if(imgtype == 'profile'){
-                        foundProfile.profilepicid = file._id;
-                        foundProfile.profilepictype = rfile.type;
-                    }
-                    prof.save(function (err) {
-                        if (err) throw err;
-                        res.send('data:'+rfile.type+';base64,' + base64 );
-                    })
-                }
-
+    Profile.findOne({userId: user.userdata._id},function(err, foundProfile){
+        if(foundProfile){
+            if(imgtype == 'cover') {
+                foundProfile.coverpictype = rfile.type;
+                foundProfile.coverpath = rfile.path;
+            }else if(imgtype == 'profile')
+            {
+                foundProfile.profilepictype = rfile.type;
+                foundProfile.profilepath = rfile.path;
+            }
+            foundProfile.save();
+            res.send(rfile.path);
+        }else {
+            var prof = new Profile();
+            prof.userId = user.userdata._id;
+            if(imgtype == 'cover') {
+                prof.coverpictype = rfile.type;
+                prof.coverpath = rfile.path;
+            }else if(imgtype == 'profile'){
+                foundProfile.profilepictype = rfile.type;
+                foundProfile.profilepath = rfile.path;
+            }
+            prof.save(function (err) {
+                if (err) throw err;
+                res.send(rfile.path);
             })
-        });
-    });
+        }
+    })
 })
 
 app.get('/data/:image', function(req, res) {
@@ -174,7 +110,6 @@ app.get('/data/:image', function(req, res) {
         res.end(data,'binary');
     }, req.params.imgtag );
 });
-
 app.post('/register',function(req,res){
     var user = req.body;
 
@@ -188,7 +123,6 @@ app.post('/register',function(req,res){
 })
 app.post('/login',function(req,res){
     req.user = req.body;
-    console.log(req.user);
     var searchUser = {email: req.user.email};
     User.findOne(searchUser,function(err,user){
         if(err) throw err;
@@ -211,7 +145,6 @@ app.post('/auth/google',function(req,res){
         grant_type: 'authorization_code',
         client_secret: 'f2W4QSvL4CdiJrm4VXRiSl4p'
     }
-    console.log(params);
     request.post(url,{
         json:true,
         form:params
@@ -224,7 +157,6 @@ app.post('/auth/google',function(req,res){
             json:true},
                 function(err,response,profile){
                     User.findOne({googleId: profile.sub},function(err, foundUser){
-                        console.log(foundUser);
                         if(foundUser) return createSendToken(foundUser,res);
 
                         var newuser = new User();
@@ -255,7 +187,6 @@ function createSendToken(user,res){
 }
 
 mongoose.connect('mongodb://superhero:superhero@ds033429.mongolab.com:33429/startupone');
-
 
 var server = app.listen(port,function(){
     console.log('api listening on',port);

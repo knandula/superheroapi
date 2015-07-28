@@ -17,6 +17,7 @@
     "cors": "^2.7.1",
     "crypto": "0.0.3",
     "express": "^4.13.1",
+    "formidable": "^1.0.17",
     "gridfs-stream": "^1.1.1",
     "moment": "^2.10.3",
     "mongoose": "^4.0.6",
