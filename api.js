@@ -123,7 +123,9 @@ app.post('/register',function(req,res){
 })
 app.post('/login',function(req,res){
     req.user = req.body;
+
     var searchUser = {email: req.user.email};
+    console.log(searchUser);
     User.findOne(searchUser,function(err,user){
         if(err) throw err;
         if(!user)  return res.status(401).send({message: "  Wrong email/password  "});
