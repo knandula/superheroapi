@@ -78,11 +78,11 @@ app.post('/uploadimage',multipartyMiddleware,function(req,res){
         if(foundProfile){
             if(imgtype == 'cover') {
                 foundProfile.coverpictype = rfile.type;
-                foundProfile.coverpath = rfile.path;
+                foundProfile.coverpath = rfile.path.toString().replace("public\\","");;
             }else if(imgtype == 'profile')
             {
                 foundProfile.profilepictype = rfile.type;
-                foundProfile.profilepath = rfile.path;
+                foundProfile.profilepath = rfile.path.toString().replace("public\\","");;
             }
             foundProfile.save();
             res.send(rfile.path);
