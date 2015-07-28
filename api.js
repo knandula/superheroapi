@@ -73,16 +73,18 @@ app.post('/uploadimage',multipartyMiddleware,function(req,res){
     var user = JSON.parse(req.body.data);
     var imgtype = user.imgtype;
     var rfile = req.files.file;
+    var fpath = rfile.path.replace("public\\","");
+
 
     Profile.findOne({userId: user.userdata._id},function(err, foundProfile){
         if(foundProfile){
             if(imgtype == 'cover') {
                 foundProfile.coverpictype = rfile.type;
-                foundProfile.coverpath = rfile.path;
+                foundProfile.coverpath = fpath;
             }else if(imgtype == 'profile')
             {
                 foundProfile.profilepictype = rfile.type;
-                foundProfile.profilepath = rfile.path;
+                foundProfile.profilepath = fpath;
             }
             foundProfile.save();
             res.send(rfile.path);
@@ -91,10 +93,10 @@ app.post('/uploadimage',multipartyMiddleware,function(req,res){
             prof.userId = user.userdata._id;
             if(imgtype == 'cover') {
                 prof.coverpictype = rfile.type;
-                prof.coverpath = rfile.path;
+                prof.coverpath = fpath;
             }else if(imgtype == 'profile'){
                 foundProfile.profilepictype = rfile.type;
-                foundProfile.profilepath = rfile.path;
+                foundProfile.profilepath = fpath;
             }
             prof.save(function (err) {
                 if (err) throw err;
