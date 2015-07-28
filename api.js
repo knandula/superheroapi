@@ -31,12 +31,13 @@ Grid.mongo = mongoose.mongo;
 var port = process.env.PORT || 7203;
 
 var app = express();
-app.use(express.static(path.join(__dirname,'./public')));
+
 app.all('*', function(req, res, next){
     if (!req.get('Origin')) return next();
     // use "*" here to accept any origin
-    res.set('Access-Control-Allow-Origin', 'https://fictiontree.herokuapp.com');
     //res.set('Access-Control-Allow-Origin', 'http://localhost:9000');
+    res.set('Access-Control-Allow-Origin', 'https://fictiontree.herokuapp.com');
+    res.set('Access-Control-Allow-Origin', '*');
     res.set('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
     res.set('Access-Control-Allow-Credentials', 'true');
     res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
@@ -44,7 +45,7 @@ app.all('*', function(req, res, next){
     if ('OPTIONS' == req.method) return res.send(200);
     next();
 });
-
+app.use(express.static(path.join(__dirname,'./public')));
 app.use(bodyParser({defer: true}));
 app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
