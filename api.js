@@ -82,7 +82,6 @@ app.post('/uploadimage',multipartyMiddleware,function(req,res){
             }
             prof.save(function (err) {
                 if (err) throw err;
-                res.send(rfile.path);
             })
         }
     })
@@ -97,7 +96,7 @@ app.get('/data/:image', function(req, res) {
 
 app.post('/getprofilepicdata',function(req,res) {
     var user = req.body;
-    console.log("in get profile pic" + user);
+    console.log("in get profile pic" + user._id);
     Profile.findOne({userId: user._id},function(err, foundProfile){
         if(foundProfile){
             res.send(foundProfile.profilepath);
@@ -106,7 +105,7 @@ app.post('/getprofilepicdata',function(req,res) {
 });
 app.post('/getcoverpicdata',function(req,res) {
     var user = req.body;
-    console.log("in get cover pic" + user);
+    console.log("in get cover pic" + user._id);
     Profile.findOne({userId: user._id},function(err, foundProfile){
         if(foundProfile){
             res.send(foundProfile.coverpath);
