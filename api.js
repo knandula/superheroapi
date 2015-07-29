@@ -54,9 +54,7 @@ app.post('/uploadimage',multipartyMiddleware,function(req,res){
     var user = JSON.parse(req.body.data);
     var imgtype = user.imgtype;
     var rfile = req.files.file;
-    var fpath = rfile.path.replace("public\\","");
-    console.log(fpath);
-
+    var fpath = rfile.path;
 
     Profile.findOne({userId: user.userdata._id},function(err, foundProfile){
         if(foundProfile){
@@ -69,7 +67,7 @@ app.post('/uploadimage',multipartyMiddleware,function(req,res){
                 foundProfile.profilepath = fpath;
             }
             foundProfile.save();
-            res.send(rfile.path);
+            res.send(fpath);
         }else {
             var prof = new Profile();
             prof.userId = user.userdata._id;
@@ -87,6 +85,10 @@ app.post('/uploadimage',multipartyMiddleware,function(req,res){
     })
 })
 
+app.get('/public/img/:id', function(req, res) {
+    var url = '/img/' + req.params.id;
+    res.redirect(url);
+});
 app.get('/data/:image', function(req, res) {
     fileRepository.getFile( function(error,data) {
         res.writeHead('200', {'Content-Type': 'image/png'});
