@@ -34,9 +34,10 @@ var app = express();
 
 app.all('*', function(req, res, next){
     if (!req.get('Origin')) return next();
-    res.set('Access-Control-Allow-Origin', '*');
+    //res.set('Access-Control-Allow-Origin', 'http://localhost:9000');
+    res.set('Access-Control-Allow-Origin', 'https://fictiontree.herokuapp.com');
     res.set('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-    //res.set('Access-Control-Allow-Credentials', 'true');
+    res.set('Access-Control-Allow-Credentials', 'true');
     res.set('Access-Control-Allow-Headers', 'Origin,Accept,Content-Type, Authorization, Content-Length, X-Requested-With');
     // res.set('Access-Control-Allow-Max-Age', 3600);
     if ('OPTIONS' == req.method) return res.send(200);
