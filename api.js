@@ -23,7 +23,7 @@ var multiparty = require('connect-multiparty');
 var formidable = require('formidable');
 var buffer = "";
 
-var multipartyMiddleware = multiparty({ uploadDir: './public/img' });
+
 
 
 Grid.mongo = mongoose.mongo;
@@ -31,6 +31,8 @@ Grid.mongo = mongoose.mongo;
 var port = process.env.PORT || 7203;
 
 var app = express();
+app.use(express.static(path.join(__dirname,'./public')));
+var multipartyMiddleware = multiparty({ uploadDir: 'public/img/' });
 
 app.all('*', function(req, res, next){
     if (!req.get('Origin')) return next();
@@ -43,36 +45,17 @@ app.all('*', function(req, res, next){
     if ('OPTIONS' == req.method) return res.send(200);
     next();
 });
-app.use(express.static(path.join(__dirname,'./public')));
+
 app.use(bodyParser({defer: true}));
 app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
-
-
-app.post('/getprofilepicdata',function(req,res) {
-    var user = req.body;
-    Profile.findOne({userId: user._id},function(err, foundProfile){
-        if(foundProfile){
-            res.send(foundProfile.profilepath);
-        }
-    })
-})
-
-
-app.post('/getcoverpicdata',function(req,res) {
-    var user = req.body;
-    Profile.findOne({userId: user._id},function(err, foundProfile){
-        if(foundProfile){
-            res.send(foundProfile.coverpath);
-        }
-    })
-})
 
 app.post('/uploadimage',multipartyMiddleware,function(req,res){
     var user = JSON.parse(req.body.data);
     var imgtype = user.imgtype;
     var rfile = req.files.file;
     var fpath = rfile.path.replace("public\\","");
+    console.log(fpath);
 
 
     Profile.findOne({userId: user.userdata._id},function(err, foundProfile){
@@ -111,6 +94,26 @@ app.get('/data/:image', function(req, res) {
         res.end(data,'binary');
     }, req.params.imgtag );
 });
+
+app.post('/getprofilepicdata',function(req,res) {
+    var user = req.body;
+    console.log("in get profile pic" + user);
+    Profile.findOne({userId: user._id},function(err, foundProfile){
+        if(foundProfile){
+            res.send(foundProfile.profilepath);
+        }
+    })
+});
+app.post('/getcoverpicdata',function(req,res) {
+    var user = req.body;
+    console.log("in get cover pic" + user);
+    Profile.findOne({userId: user._id},function(err, foundProfile){
+        if(foundProfile){
+            res.send(foundProfile.coverpath);
+        }
+    })
+});
+
 app.post('/register',function(req,res){
     var user = req.body;
 
