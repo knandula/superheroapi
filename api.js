@@ -7,6 +7,7 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var User = require('./models/User.js');
 var Profile = require('./models/Profile.js');
+var Stream = require('./models/Stream.js');
 var facebookAuth = require('./services/facebookAuth.js');
 var jwt = require('./services/jwt.js');
 var request = require('request');
@@ -49,6 +50,25 @@ app.all('*', function(req, res, next){
 app.use(bodyParser({defer: true}));
 app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
+
+app.get('/getStream', function (req, res) {
+    Stream.find({},{},{sort:{stamp:-1}},function(err,col){
+        res.send({posts:col});
+    })
+})
+
+app.post('/post',function(req,res){
+    var user = req.body.user;
+    var comment = req.body.msg;
+
+    var  post = new Stream();
+    post.userId = user._id;
+    post.comment = comment;
+
+    post.save(function(err){
+        if(err) throw err;
+    })
+})
 
 app.post('/uploadimage',multipartyMiddleware,function(req,res){
     var user = JSON.parse(req.body.data);
@@ -98,7 +118,6 @@ app.get('/data/:image', function(req, res) {
 
 app.post('/getprofilepicdata',function(req,res) {
     var user = req.body;
-    console.log("in get profile pic" + user._id);
     Profile.findOne({userId: user._id},function(err, foundProfile){
         if(foundProfile){
             res.send(foundProfile.profilepath);
@@ -107,7 +126,6 @@ app.post('/getprofilepicdata',function(req,res) {
 });
 app.post('/getcoverpicdata',function(req,res) {
     var user = req.body;
-    console.log("in get cover pic" + user._id);
     Profile.findOne({userId: user._id},function(err, foundProfile){
         if(foundProfile){
             res.send(foundProfile.coverpath);
@@ -130,7 +148,6 @@ app.post('/login',function(req,res){
     req.user = req.body;
 
     var searchUser = {email: req.user.email};
-    console.log(searchUser);
     User.findOne(searchUser,function(err,user){
         if(err) throw err;
         if(!user)  return res.status(401).send({message: "  Wrong email/password  "});
