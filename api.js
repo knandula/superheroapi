@@ -23,6 +23,7 @@ var path = require('path');
 var multiparty = require('connect-multiparty');
 var formidable = require('formidable');
 var buffer = "";
+var cloudinary = require('cloudinary');
 
 
 
@@ -32,6 +33,13 @@ Grid.mongo = mongoose.mongo;
 var port = process.env.PORT || 7203;
 
 var app = express();
+
+cloudinary.config({
+    cloud_name: 'hcjzx8ghq',
+    api_key: '692468465875989',
+    api_secret: 'MI-P3fwDrgCUctZ1bfXzi-9UTAQ'
+});
+
 app.use(express.static(path.join(__dirname,'./public')));
 var multipartyMiddleware = multiparty({ uploadDir: 'public/img/' });
 
@@ -70,39 +78,59 @@ app.post('/post',function(req,res){
     })
 })
 
+
 app.post('/uploadimage',multipartyMiddleware,function(req,res){
     var user = JSON.parse(req.body.data);
     var imgtype = user.imgtype;
     var rfile = req.files.file;
-    var fpath = rfile.path;
 
-    Profile.findOne({userId: user.userdata._id},function(err, foundProfile){
-        if(foundProfile){
-            if(imgtype == 'cover') {
-                foundProfile.coverpictype = rfile.type;
-                foundProfile.coverpath = fpath;
-            }else if(imgtype == 'profile')
-            {
-                foundProfile.profilepictype = rfile.type;
-                foundProfile.profilepath = fpath;
-            }
-            foundProfile.save();
-            res.send(fpath);
-        }else {
-            var prof = new Profile();
-            prof.userId = user.userdata._id;
-            if(imgtype == 'cover') {
-                prof.coverpictype = rfile.type;
-                prof.coverpath = fpath;
-            }else if(imgtype == 'profile'){
-                foundProfile.profilepictype = rfile.type;
-                foundProfile.profilepath = fpath;
-            }
-            prof.save(function (err) {
-                if (err) throw err;
+
+    cloudinary.uploader.upload(req.files.file.path,function(result) {
+            console.log(result);
+            var fpath = result.url;
+            Profile.findOne({userId: user.userdata._id},function(err, foundProfile){
+                if(foundProfile){
+                    if(imgtype == 'cover') {
+                        foundProfile.coverpictype = rfile.type;
+                        foundProfile.coverpath = fpath;
+                    }else if(imgtype == 'profile')
+                    {
+                        foundProfile.profilepictype = rfile.type;
+                        foundProfile.profilepath = fpath;
+                    }
+                    foundProfile.save();
+                    res.send(fpath);
+                }else {
+                    var prof = new Profile();
+                    prof.userId = user.userdata._id;
+                    if(imgtype == 'cover') {
+                        prof.coverpictype = rfile.type;
+                        prof.coverpath = fpath;
+                    }else if(imgtype == 'profile'){
+                        foundProfile.profilepictype = rfile.type;
+                        foundProfile.profilepath = fpath;
+                    }
+                    prof.save(function (err) {
+                        if (err) throw err;
+                    })
+                }
             })
+        },
+        {
+            public_id: 'sample_id',
+            crop: 'limit',
+            width: 2000,
+            height: 2000,
+            eager: [
+                { width: 200, height: 200, crop: 'thumb', gravity: 'face',
+                    radius: 20, effect: 'sepia' },
+                { width: 100, height: 150, crop: 'fit', format: 'png' }
+            ],
+            tags: ['special', 'for_homepage']
         }
-    })
+    )
+
+
 })
 
 app.get('/public/img/:id', function(req, res) {

@@ -12,6 +12,7 @@
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.13.2",
     "busboy-body-parser": "0.0.9",
+    "cloudinary": "^1.2.2",
     "connect-busboy": "0.0.2",
     "connect-multiparty": "^2.0.0",
     "cors": "^2.7.1",
