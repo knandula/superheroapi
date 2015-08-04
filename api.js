@@ -45,11 +45,13 @@ var corsOptions = {
         callback(null, originIsWhitelisted);
     }
 };
-app.use(cors(corsOptions));
+
 app.use(express.static(path.join(__dirname,'./public')));
 app.use(bodyParser({defer: true}));
-app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(multiparty({ uploadDir: 'public/img/' }));
+app.use(cors(corsOptions));
 
 cloudinary.config({
     cloud_name: 'hcjzx8ghq',
@@ -89,7 +91,7 @@ app.post('/post',function(req,res){
     })
 })
 
-app.post('/uploadimage',function(req,res){
+app.post('/uploadimage',multipartyMiddleware,function(req,res){
     var user = JSON.parse(req.body.data);
     var imgtype = user.imgtype;
     var rfile = req.files.file;
