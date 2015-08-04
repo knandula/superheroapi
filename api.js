@@ -34,7 +34,15 @@ Grid.mongo = mongoose.mongo;
 var port = process.env.PORT || 7203;
 
 var app = express();
-app.use(cors());
+
+var whitelist = ['https://fictiontree.herokuapp.com', 'http://fictiontree.herokuapp.com','http://res.cloudinary.com','https://res.cloudinary.com'];
+var corsOptions = {
+    origin: function(origin, callback){
+        var originIsWhitelisted = whitelist.indexOf(origin) !== -1;
+        callback(null, originIsWhitelisted);
+    }
+};
+app.use(cors(corsOptions));
 app.use(express.static(path.join(__dirname,'./public')));
 
 cloudinary.config({
@@ -147,7 +155,7 @@ app.get('/data/:image', function(req, res) {
     }, req.params.imgtag );
 });
 
-app.post('/getprofilepicdata',function(req,res) {
+app.post('/getprofilepicdata',cors(corsOptions),function(req,res) {
     var user = req.body;
     Profile.findOne({userId: user._id},function(err, foundProfile){
         if(foundProfile){
@@ -155,7 +163,7 @@ app.post('/getprofilepicdata',function(req,res) {
         }
     })
 });
-app.post('/getcoverpicdata',function(req,res) {
+app.post('/getcoverpicdata',cors(corsOptions),function(req,res) {
     var user = req.body;
     Profile.findOne({userId: user._id},function(err, foundProfile){
         if(foundProfile){
