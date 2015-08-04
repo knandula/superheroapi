@@ -22,6 +22,7 @@ var Grid = require('gridfs-stream');
 var path = require('path');
 var multiparty = require('connect-multiparty');
 var formidable = require('formidable');
+var cors = require('cors');
 var buffer = "";
 var cloudinary = require('cloudinary');
 
@@ -33,6 +34,8 @@ Grid.mongo = mongoose.mongo;
 var port = process.env.PORT || 7203;
 
 var app = express();
+app.use(cors());
+app.use(express.static(path.join(__dirname,'./public')));
 
 cloudinary.config({
     cloud_name: 'hcjzx8ghq',
@@ -40,20 +43,20 @@ cloudinary.config({
     api_secret: 'MI-P3fwDrgCUctZ1bfXzi-9UTAQ'
 });
 
-app.use(express.static(path.join(__dirname,'./public')));
+
 var multipartyMiddleware = multiparty({ uploadDir: 'public/img/' });
 
-app.all('*', function(req, res, next){
-    if (!req.get('Origin')) return next();
-    //res.set('Access-Control-Allow-Origin', 'http://localhost:9000');
-    res.set('Access-Control-Allow-Origin', 'https://fictiontree.herokuapp.com');
-    res.set('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-    res.set('Access-Control-Allow-Credentials', 'true');
-    res.set('Access-Control-Allow-Headers', 'Origin,Accept,Content-Type, Authorization, Content-Length, X-Requested-With');
-    // res.set('Access-Control-Allow-Max-Age', 3600);
-    if ('OPTIONS' == req.method) return res.send(200);
-    next();
-});
+//app.all('*', function(req, res, next){
+//    if (!req.get('Origin')) return next();
+//    //res.set('Access-Control-Allow-Origin', 'http://localhost:9000');
+//    res.set('Access-Control-Allow-Origin', 'https://fictiontree.herokuapp.com');
+//    res.set('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+//    res.set('Access-Control-Allow-Credentials', 'true');
+//    res.set('Access-Control-Allow-Headers', 'Origin,Accept,Content-Type, Authorization, Content-Length, X-Requested-With');
+//    // res.set('Access-Control-Allow-Max-Age', 3600);
+//    if ('OPTIONS' == req.method) return res.send(200);
+//    next();
+//});
 
 app.use(bodyParser({defer: true}));
 app.use(bodyParser.json({limit: '50mb'}));
