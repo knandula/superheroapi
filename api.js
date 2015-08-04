@@ -35,15 +35,17 @@ var port = process.env.PORT || 7203;
 
 var app = express();
 
-//var whitelist = ['https://fictiontree.herokuapp.com', 'http://fictiontree.herokuapp.com','http://res.cloudinary.com','https://res.cloudinary.com'];
-//var corsOptions = {
-//    credentials:true,
-//    origin: function(origin, callback){
-//        var originIsWhitelisted = whitelist.indexOf(origin) !== -1;
-//        callback(null, originIsWhitelisted);
-//    }
-//};
-//app.use(cors(corsOptions));
+var whitelist = ['https://fictiontree.herokuapp.com', 'http://fictiontree.herokuapp.com','http://res.cloudinary.com','https://res.cloudinary.com'];
+var corsOptions = {
+    methods:['GET','PUT','POST','DELETE','OPTIONS'],
+    allowedHeaders:['Origin','Accept','Content-Type','Authorization','Content-Length','X-Requested-With'],
+    credentials:true,
+    origin: function(origin, callback){
+        var originIsWhitelisted = whitelist.indexOf(origin) !== -1;
+        callback(null, originIsWhitelisted);
+    }
+};
+app.use(cors(corsOptions));
 app.use(express.static(path.join(__dirname,'./public')));
 app.use(bodyParser({defer: true}));
 app.use(bodyParser.json({limit: '50mb'}));
@@ -59,15 +61,15 @@ var multipartyMiddleware = multiparty({ uploadDir: 'public/img/' });
 
 
 
-app.all('*', function(req, res, next){
-    if (!req.get('Origin')) return next();
-    res.set('Access-Control-Allow-Origin', 'https://fictiontree.herokuapp.com,http://fictiontree.herokuapp.com,http://res.cloudinary.com,https://res.cloudinary.com');
-    res.set('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-    res.set('Access-Control-Allow-Credentials', 'true');
-    res.set('Access-Control-Allow-Headers', 'Origin,Accept,Content-Type, Authorization, Content-Length, X-Requested-With');
-    if ('OPTIONS' == req.method) return res.send(200);
-    next();
-});
+//app.all('*', function(req, res, next){
+//    if (!req.get('Origin')) return next();
+//    res.set('Access-Control-Allow-Origin', 'https://fictiontree.herokuapp.com,http://fictiontree.herokuapp.com,http://res.cloudinary.com,https://res.cloudinary.com');
+//    res.set('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+//    res.set('Access-Control-Allow-Credentials', 'true');
+//    res.set('Access-Control-Allow-Headers', 'Origin,Accept,Content-Type, Authorization, Content-Length, X-Requested-With');
+//    if ('OPTIONS' == req.method) return res.send(200);
+//    next();
+//});
 
 app.get('/getStream', function (req, res) {
     Stream.find({},{},{sort:{stamp:-1}},function(err,col){
