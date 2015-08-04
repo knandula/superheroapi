@@ -156,6 +156,8 @@ app.post('/getprofilepicdata',function(req,res) {
     Profile.findOne({userId: user._id},function(err, foundProfile){
         if(foundProfile){
             res.send(foundProfile.profilepath);
+        }else{
+            res.send({msg:"No Data"});
         }
     })
 });
@@ -164,6 +166,9 @@ app.post('/getcoverpicdata',function(req,res) {
     Profile.findOne({userId: user._id},function(err, foundProfile){
         if(foundProfile){
             res.send(foundProfile.coverpath);
+        }else
+        {
+            res.send({msg:"No Data"});
         }
     })
 });
