@@ -35,15 +35,15 @@ var port = process.env.PORT || 7203;
 
 var app = express();
 
-var whitelist = ['https://fictiontree.herokuapp.com', 'http://fictiontree.herokuapp.com','http://res.cloudinary.com','https://res.cloudinary.com'];
-var corsOptions = {
-    credentials:true,
-    origin: function(origin, callback){
-        var originIsWhitelisted = whitelist.indexOf(origin) !== -1;
-        callback(null, originIsWhitelisted);
-    }
-};
-app.use(cors(corsOptions));
+//var whitelist = ['https://fictiontree.herokuapp.com', 'http://fictiontree.herokuapp.com','http://res.cloudinary.com','https://res.cloudinary.com'];
+//var corsOptions = {
+//    credentials:true,
+//    origin: function(origin, callback){
+//        var originIsWhitelisted = whitelist.indexOf(origin) !== -1;
+//        callback(null, originIsWhitelisted);
+//    }
+//};
+//app.use(cors(corsOptions));
 app.use(express.static(path.join(__dirname,'./public')));
 app.use(bodyParser({defer: true}));
 app.use(bodyParser.json({limit: '50mb'}));
