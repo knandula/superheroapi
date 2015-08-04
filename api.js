@@ -194,8 +194,8 @@ app.post('/login',cors(corsOptions),function(req,res){
         });
     })
 })
-app.post('/auth/facebook',cors(corsOptions),facebookAuth);
-app.post('/auth/google',cors(corsOptions),function(req,res){
+app.post('/auth/facebook',facebookAuth);
+app.post('/auth/google',function(req,res){
     var url =  'https://accounts.google.com/o/oauth2/token';
     var apiUrl = 'https://www.googleapis.com/plus/v1/people/me/openIdConnect';
     var params = {
