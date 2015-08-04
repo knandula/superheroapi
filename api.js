@@ -37,6 +37,7 @@ var app = express();
 
 var whitelist = ['https://fictiontree.herokuapp.com', 'http://fictiontree.herokuapp.com','http://res.cloudinary.com','https://res.cloudinary.com'];
 var corsOptions = {
+    credentials:true,
     origin: function(origin, callback){
         var originIsWhitelisted = whitelist.indexOf(origin) !== -1;
         callback(null, originIsWhitelisted);
@@ -44,6 +45,9 @@ var corsOptions = {
 };
 app.use(cors(corsOptions));
 app.use(express.static(path.join(__dirname,'./public')));
+app.use(bodyParser({defer: true}));
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
 cloudinary.config({
     cloud_name: 'hcjzx8ghq',
@@ -51,21 +55,18 @@ cloudinary.config({
     api_secret: 'MI-P3fwDrgCUctZ1bfXzi-9UTAQ'
 });
 
-
 var multipartyMiddleware = multiparty({ uploadDir: 'public/img/' });
 
-app.all('/', function(req, res, next){
-    if (!req.get('Origin')) return next();
-    res.set('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-    res.set('Access-Control-Allow-Credentials', 'true');
-    res.set('Access-Control-Allow-Headers', 'Origin,Accept,Content-Type, Authorization, Content-Length, X-Requested-With');
-    if ('OPTIONS' == req.method) return res.send(200);
-    next();
-});
 
-app.use(bodyParser({defer: true}));
-app.use(bodyParser.json({limit: '50mb'}));
-app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
+
+//app.all('/', function(req, res, next){
+//    if (!req.get('Origin')) return next();
+//    res.set('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+//    res.set('Access-Control-Allow-Credentials', 'true');
+//    res.set('Access-Control-Allow-Headers', 'Origin,Accept,Content-Type, Authorization, Content-Length, X-Requested-With');
+//    if ('OPTIONS' == req.method) return res.send(200);
+//    next();
+//});
 
 app.get('/getStream', function (req, res) {
     Stream.find({},{},{sort:{stamp:-1}},function(err,col){
