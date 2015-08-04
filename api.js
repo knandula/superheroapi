@@ -92,7 +92,6 @@ app.post('/post',function(req,res){
 })
 
 app.post('/uploadimage',multipartyMiddleware,function(req,res){
-    res.set('Access-Control-Allow-Origin', 'https://fictiontree.herokuapp.com,http://fictiontree.herokuapp.com,http://res.cloudinary.com,https://res.cloudinary.com');
     var user = JSON.parse(req.body.data);
     var imgtype = user.imgtype;
     var rfile = req.files.file;
