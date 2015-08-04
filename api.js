@@ -88,11 +88,11 @@ app.post('/post',function(req,res){
         if(err) throw err;
     })
 })
-app.post('/uploadimage',multipartyMiddleware,function(req,res){
+
+app.post('/uploadimage',cors(corsOptions),function(req,res){
     var user = JSON.parse(req.body.data);
     var imgtype = user.imgtype;
     var rfile = req.files.file;
-
 
     cloudinary.uploader.upload(req.files.file.path,function(result) {
             console.log(result);
@@ -124,23 +124,10 @@ app.post('/uploadimage',multipartyMiddleware,function(req,res){
                     })
                 }
             })
-        },
-        {
-            public_id: 'sample_id',
-            crop: 'limit',
-            width: 2000,
-            height: 2000,
-            eager: [
-                { width: 200, height: 200, crop: 'thumb', gravity: 'face',
-                    radius: 20, effect: 'sepia' },
-                { width: 100, height: 150, crop: 'fit', format: 'png' }
-            ],
-            tags: ['special', 'for_homepage']
         }
     )
-
-
 })
+
 app.get('/public/img/:id',cors(corsOptions),function(req, res) {
     var url = '/img/' + req.params.id;
     res.redirect(url);
