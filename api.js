@@ -35,7 +35,7 @@ var port = process.env.PORT || 7203;
 
 var app = express();
 
-var whitelist = ['https://fictiontree.herokuapp.com', 'http://fictiontree.herokuapp.com','http://res.cloudinary.com','https://res.cloudinary.com'];
+var whitelist = ['http://localhost:9000','https://fictiontree.herokuapp.com', 'http://fictiontree.herokuapp.com','http://res.cloudinary.com','https://res.cloudinary.com'];
 var corsOptions = {
     methods:['GET','PUT','POST','DELETE','OPTIONS'],
     allowedHeaders:['Origin','Accept','Content-Type','Authorization','Content-Length','X-Requested-With'],
