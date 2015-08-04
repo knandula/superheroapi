@@ -98,7 +98,7 @@ app.post('/uploadimage',multipartyMiddleware,function(req,res){
 
     cloudinary.uploader.upload(req.files.file.path,function(result) {
             console.log(result);
-            var fpath = result.url;
+            var fpath = result.secure_url;
             Profile.findOne({userId: user.userdata._id},function(err, foundProfile){
                 if(foundProfile){
                     if(imgtype == 'cover') {
@@ -144,7 +144,7 @@ app.post('/uploadimage',multipartyMiddleware,function(req,res){
 
 })
 
-app.get('/public/img/:id', function(req, res) {
+app.get('/public/img/:id',cors(corsOptions),function(req, res) {
     var url = '/img/' + req.params.id;
     res.redirect(url);
 });
@@ -172,7 +172,7 @@ app.post('/getcoverpicdata',cors(corsOptions),function(req,res) {
     })
 });
 
-app.post('/register',function(req,res){
+app.post('/register',cors(corsOptions),function(req,res){
     var user = req.body;
 
     var newUser = new User({
@@ -183,7 +183,7 @@ app.post('/register',function(req,res){
         createSendToken(newUser,res);
     })
 })
-app.post('/login',function(req,res){
+app.post('/login',cors(corsOptions),function(req,res){
     req.user = req.body;
 
     var searchUser = {email: req.user.email};
@@ -197,8 +197,8 @@ app.post('/login',function(req,res){
         });
     })
 })
-app.post('/auth/facebook',facebookAuth);
-app.post('/auth/google',function(req,res){
+app.post('/auth/facebook',cors(corsOptions),facebookAuth);
+app.post('/auth/google',cors(corsOptions),function(req,res){
     var url =  'https://accounts.google.com/o/oauth2/token';
     var apiUrl = 'https://www.googleapis.com/plus/v1/people/me/openIdConnect';
     var params = {
