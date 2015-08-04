@@ -89,7 +89,7 @@ app.post('/post',function(req,res){
     })
 })
 
-app.post('/uploadimage',cors(corsOptions),function(req,res){
+app.post('/uploadimage',function(req,res){
     var user = JSON.parse(req.body.data);
     var imgtype = user.imgtype;
     var rfile = req.files.file;
