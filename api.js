@@ -124,6 +124,7 @@ app.post('/uploadimage',multipartyMiddleware,function(req,res){
                     }
                     prof.save(function (err) {
                         if (err) throw err;
+                        res.send(fpath);
                     })
                 }
             })
