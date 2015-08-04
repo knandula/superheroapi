@@ -59,21 +59,21 @@ var multipartyMiddleware = multiparty({ uploadDir: 'public/img/' });
 
 
 
-//app.all('/', function(req, res, next){
-//    if (!req.get('Origin')) return next();
-//    res.set('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-//    res.set('Access-Control-Allow-Credentials', 'true');
-//    res.set('Access-Control-Allow-Headers', 'Origin,Accept,Content-Type, Authorization, Content-Length, X-Requested-With');
-//    if ('OPTIONS' == req.method) return res.send(200);
-//    next();
-//});
+app.all('*', function(req, res, next){
+    if (!req.get('Origin')) return next();
+    res.set('Access-Control-Allow-Origin', 'https://fictiontree.herokuapp.com');
+    res.set('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    res.set('Access-Control-Allow-Credentials', 'true');
+    res.set('Access-Control-Allow-Headers', 'Origin,Accept,Content-Type, Authorization, Content-Length, X-Requested-With');
+    if ('OPTIONS' == req.method) return res.send(200);
+    next();
+});
 
 app.get('/getStream', function (req, res) {
     Stream.find({},{},{sort:{stamp:-1}},function(err,col){
         res.send({posts:col});
     })
 })
-
 app.post('/post',function(req,res){
     var user = req.body.user;
     var comment = req.body.msg;
@@ -86,8 +86,6 @@ app.post('/post',function(req,res){
         if(err) throw err;
     })
 })
-
-
 app.post('/uploadimage',multipartyMiddleware,function(req,res){
     var user = JSON.parse(req.body.data);
     var imgtype = user.imgtype;
@@ -141,7 +139,6 @@ app.post('/uploadimage',multipartyMiddleware,function(req,res){
 
 
 })
-
 app.get('/public/img/:id',cors(corsOptions),function(req, res) {
     var url = '/img/' + req.params.id;
     res.redirect(url);
@@ -152,7 +149,6 @@ app.get('/data/:image', function(req, res) {
         res.end(data,'binary');
     }, req.params.imgtag );
 });
-
 app.post('/getprofilepicdata',cors(corsOptions),function(req,res) {
     var user = req.body;
     Profile.findOne({userId: user._id},function(err, foundProfile){
