@@ -149,7 +149,7 @@ app.get('/data/:image', function(req, res) {
         res.end(data,'binary');
     }, req.params.imgtag );
 });
-app.post('/getprofilepicdata',cors(corsOptions),function(req,res) {
+app.post('/getprofilepicdata',function(req,res) {
     var user = req.body;
     Profile.findOne({userId: user._id},function(err, foundProfile){
         if(foundProfile){
@@ -157,7 +157,7 @@ app.post('/getprofilepicdata',cors(corsOptions),function(req,res) {
         }
     })
 });
-app.post('/getcoverpicdata',cors(corsOptions),function(req,res) {
+app.post('/getcoverpicdata',function(req,res) {
     var user = req.body;
     Profile.findOne({userId: user._id},function(err, foundProfile){
         if(foundProfile){
@@ -166,7 +166,7 @@ app.post('/getcoverpicdata',cors(corsOptions),function(req,res) {
     })
 });
 
-app.post('/register',cors(corsOptions),function(req,res){
+app.post('/register',function(req,res){
     var user = req.body;
 
     var newUser = new User({
@@ -177,7 +177,7 @@ app.post('/register',cors(corsOptions),function(req,res){
         createSendToken(newUser,res);
     })
 })
-app.post('/login',cors(corsOptions),function(req,res){
+app.post('/login',function(req,res){
     req.user = req.body;
 
     var searchUser = {email: req.user.email};
